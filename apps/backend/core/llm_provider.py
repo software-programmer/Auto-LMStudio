@@ -34,9 +34,7 @@ def get_active_provider() -> LLMProvider:
 
     Priority:
     1. LLM_PROVIDER environment variable (explicit override)
-    2. ANTHROPIC_BASE_URL set to LM Studio default → LM_STUDIO
-    3. ANTHROPIC_BASE_URL set to other URL → check if OpenAI-compatible
-    4. Default to CLAUDE
+    2. Default to CLAUDE
 
     Returns:
         Active LLM provider enum value
@@ -53,19 +51,8 @@ def get_active_provider() -> LLMProvider:
         logger.info("LLM_PROVIDER set to claude")
         return LLMProvider.CLAUDE
 
-    # Check ANTHROPIC_BASE_URL for LM Studio patterns
-    base_url = os.environ.get("ANTHROPIC_BASE_URL", "")
-    if base_url:
-        # LM Studio default endpoint
-        if "192.168.1.85:1234" in base_url or "localhost:1234" in base_url:
-            logger.info(f"Detected LM Studio endpoint: {base_url}")
-            return LLMProvider.LM_STUDIO
-        # Generic OpenAI-compatible endpoint
-        elif "/v1" in base_url or "openai" in base_url.lower():
-            logger.info(f"Detected OpenAI-compatible endpoint: {base_url}")
-            return LLMProvider.OPENAI
-
-    # Default to Claude
+    # Default to Claude unless explicitly set
+    # This ensures backward compatibility - existing users won't be affected
     logger.debug("Using default Claude provider")
     return LLMProvider.CLAUDE
 
