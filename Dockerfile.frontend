@@ -1,0 +1,31 @@
+# Frontend Dockerfile for Auto Claude
+FROM node:24-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    python3 \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package*.json /app/
+COPY apps/frontend/package*.json /app/apps/frontend/
+
+# Install dependencies
+WORKDIR /app/apps/frontend
+RUN npm install
+
+# Copy frontend code
+COPY apps/frontend /app/apps/frontend
+
+# Build the frontend
+RUN npm run build
+
+# Expose Electron debugging port (if needed)
+EXPOSE 9222
+
+# Default command
+CMD ["npm", "start"]

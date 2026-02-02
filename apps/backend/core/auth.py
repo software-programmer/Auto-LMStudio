@@ -44,6 +44,8 @@ AUTH_TOKEN_ENV_VARS = [
 # Environment variables to pass through to SDK subprocess
 # NOTE: ANTHROPIC_API_KEY is intentionally excluded to prevent silent API billing
 SDK_ENV_VARS = [
+    # Provider configuration
+    "LLM_PROVIDER",  # Provider type: claude, lm_studio, openai
     # API endpoint configuration
     "ANTHROPIC_BASE_URL",
     "ANTHROPIC_AUTH_TOKEN",

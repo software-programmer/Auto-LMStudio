@@ -1,0 +1,76 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: auto-lmstudio-backend
+    environment:
+      # LM Studio Configuration (default)
+      - LLM_PROVIDER=lm_studio
+      - ANTHROPIC_BASE_URL=http://192.168.1.85:1234/v1
+      - ANTHROPIC_AUTH_TOKEN=lm-studio
+      - ANTHROPIC_MODEL=local-model
+      
+      # Optional: Override with Claude if you have credentials
+      # - LLM_PROVIDER=claude
+      # - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+      
+      # Debug settings
+      - DEBUG=false
+      - DEBUG_LEVEL=1
+      
+      # Graphiti Memory (optional - disabled by default to simplify setup)
+      - GRAPHITI_ENABLED=false
+      
+      # Linear Integration (optional)
+      # - LINEAR_API_KEY=${LINEAR_API_KEY}
+      
+    volumes:
+      # Mount your project directory
+      - ./:/app/project
+      # Mount .auto-claude directory for specs and worktrees
+      - ./.auto-claude:/app/.auto-claude
+      # Mount git configuration
+      - ~/.gitconfig:/root/.gitconfig:ro
+      - ~/.ssh:/root/.ssh:ro
+    working_dir: /app/project
+    networks:
+      - auto-lmstudio
+
+  # Frontend service (optional - uncomment if you want to run the Electron UI)
+  # Note: Running Electron in Docker requires X11 forwarding and additional setup
+  # For most use cases, the backend CLI is sufficient
+  #
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.frontend
+  #   container_name: auto-lmstudio-frontend
+  #   environment:
+  #     - BACKEND_URL=http://backend:8000
+  #     - DISPLAY=${DISPLAY:-:0}
+  #   volumes:
+  #     - ./:/app/project
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:ro
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - auto-lmstudio
+
+networks:
+  auto-lmstudio:
+    driver: bridge
+
+# Quick Start:
+# 1. Make sure LM Studio is running on http://192.168.1.85:1234
+# 2. Run: docker compose up -d
+# 3. Access backend CLI: docker compose exec backend python run.py --help
+# 4. View logs: docker compose logs -f
+#
+# To use Claude instead of LM Studio:
+# 1. Set environment variables for Claude authentication
+# 2. Update LLM_PROVIDER=claude in the backend service
+# 3. Restart: docker compose restart backend
+#
+# Note: The frontend requires X11 forwarding and is optional.
+# The backend CLI provides full functionality for most use cases.

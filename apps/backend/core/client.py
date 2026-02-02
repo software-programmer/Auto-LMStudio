@@ -142,6 +142,13 @@ from core.auth import (
     configure_sdk_authentication,
     get_sdk_env_vars,
 )
+from core.llm_provider import (
+    get_active_provider,
+    get_openai_compatible_config,
+    should_use_claude_sdk,
+    LLMProvider,
+)
+from core.openai_client import create_openai_compatible_client
 from linear_updater import is_linear_enabled
 from prompts_pkg.project_context import detect_project_capabilities, load_project_index
 from security import bash_security_hook
@@ -834,4 +841,26 @@ def create_client(
     if agents:
         options_kwargs["agents"] = agents
 
-    return ClaudeSDKClient(options=ClaudeAgentOptions(**options_kwargs))
+    # Route to appropriate client based on provider
+    # Check if we should use Claude SDK or OpenAI-compatible client
+    if should_use_claude_sdk():
+        # Use Claude Agent SDK for Claude provider
+        return ClaudeSDKClient(options=ClaudeAgentOptions(**options_kwargs))
+    else:
+        # Use OpenAI-compatible client for LM Studio and other providers
+        provider = get_active_provider()
+        logger.info(f"Using {provider.value} provider with OpenAI-compatible client")
+
+        oai_config = get_openai_compatible_config()
+
+        # Create OpenAI-compatible client with similar configuration
+        # Note: Not all Claude SDK features are available with OpenAI-compatible providers
+        return create_openai_compatible_client(
+            api_key=oai_config["api_key"],
+            base_url=oai_config["base_url"],
+            model=oai_config["default_model"],
+            system_prompt=base_prompt,
+            allowed_tools=allowed_tools_list,
+            max_turns=1000,
+            cwd=project_dir,
+        )

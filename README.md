@@ -55,19 +55,50 @@
 
 ## Requirements
 
+### Default Setup (Claude)
 - **Claude Pro/Max subscription** - [Get one here](https://claude.ai/upgrade)
 - **Claude Code CLI** - `npm install -g @anthropic-ai/claude-code`
+- **Git repository** - Your project must be initialized as a git repo
+
+### Alternative Setup (LM Studio)
+- **LM Studio** - [Download here](https://lmstudio.ai/)
+- **Local model** - Download any compatible model in LM Studio
 - **Git repository** - Your project must be initialized as a git repo
 
 ---
 
 ## Quick Start
 
+### Using Claude (Default)
 1. **Download and install** the app for your platform
 2. **Open your project** - Select a git repository folder
 3. **Connect Claude** - The app will guide you through OAuth setup
 4. **Create a task** - Describe what you want to build
 5. **Watch it work** - Agents plan, code, and validate autonomously
+
+### Using LM Studio (Alternative)
+1. **Install LM Studio** and download a model
+2. **Start LM Studio server** on `http://192.168.1.85:1234` (or your preferred endpoint)
+3. **Clone this repository**
+4. **Run with Docker Compose**:
+   ```bash
+   docker-compose up -d
+   ```
+5. **Access the backend CLI**:
+   ```bash
+   docker-compose exec backend python run.py --help
+   ```
+
+Or configure manually:
+```bash
+cd apps/backend
+cp .env.example .env
+# Edit .env and set:
+# LLM_PROVIDER=lm_studio
+# ANTHROPIC_BASE_URL=http://192.168.1.85:1234/v1
+# ANTHROPIC_MODEL=your-model-name
+python run.py --spec 001
+```
 
 ---
 
@@ -121,6 +152,58 @@ Auto-Claude/
 ├── tests/           # Test suite
 └── scripts/         # Build utilities
 ```
+
+---
+
+## Docker Deployment
+
+Auto Claude can run in Docker containers for easy deployment and isolation.
+
+### Quick Start with Docker Compose
+
+1. **Make sure LM Studio is running** on `http://192.168.1.85:1234`
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/software-programmer/Auto-LMStudio.git
+   cd Auto-LMStudio
+   ```
+3. **Start services**:
+   ```bash
+   docker-compose up -d
+   ```
+4. **Use the backend CLI**:
+   ```bash
+   docker-compose exec backend python run.py --help
+   ```
+
+### Configuration
+
+The `docker-compose.yml` is pre-configured for LM Studio. To use Claude instead:
+
+1. Edit `docker-compose.yml`:
+   ```yaml
+   environment:
+     - LLM_PROVIDER=claude
+     - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+   ```
+2. Set your Claude token:
+   ```bash
+   export CLAUDE_CODE_OAUTH_TOKEN=your-token
+   ```
+3. Restart services:
+   ```bash
+   docker-compose restart backend
+   ```
+
+### Docker Commands
+
+| Command | Description |
+|---------|-------------|
+| `docker-compose up -d` | Start services in background |
+| `docker-compose down` | Stop and remove containers |
+| `docker-compose logs -f` | View logs |
+| `docker-compose exec backend bash` | Access backend shell |
+| `docker-compose exec backend python run.py --spec 001` | Run a spec |
 
 ---
 
