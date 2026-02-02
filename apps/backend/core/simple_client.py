@@ -31,6 +31,12 @@ from core.auth import (
     configure_sdk_authentication,
     get_sdk_env_vars,
 )
+from core.llm_provider import (
+    get_openai_compatible_config,
+    should_use_claude_sdk,
+    get_active_provider,
+)
+from core.openai_client import create_openai_compatible_client
 from core.platform import validate_cli_path
 from phase_config import get_thinking_budget
 
@@ -114,4 +120,24 @@ def create_simple_client(
         options_kwargs["cli_path"] = env_cli_path
         logger.info(f"Using CLAUDE_CLI_PATH override: {env_cli_path}")
 
-    return ClaudeSDKClient(options=ClaudeAgentOptions(**options_kwargs))
+    # Route to appropriate client based on provider
+    if should_use_claude_sdk():
+        # Use Claude Agent SDK for Claude provider
+        return ClaudeSDKClient(options=ClaudeAgentOptions(**options_kwargs))
+    else:
+        # Use OpenAI-compatible client for LM Studio and other providers
+        provider = get_active_provider()
+        logger.info(f"Using {provider.value} provider with OpenAI-compatible client")
+
+        oai_config = get_openai_compatible_config()
+
+        # Create OpenAI-compatible client with similar configuration
+        return create_openai_compatible_client(
+            api_key=oai_config["api_key"],
+            base_url=oai_config["base_url"],
+            model=model,  # Use the model passed to this function
+            system_prompt=system_prompt,
+            allowed_tools=allowed_tools,
+            max_turns=max_turns,
+            cwd=cwd,
+        )
